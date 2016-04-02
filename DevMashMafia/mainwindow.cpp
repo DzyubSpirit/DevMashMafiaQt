@@ -1,22 +1,23 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#define MAIN_URL std::string("http://devmashmafia.herokuapp.com/")
-
 #include <QPushButton>
 #include <QLabel>
 #include <QLayout>
+#include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    _io(new client())
+    socket(new SocketWrapper(this))
 {
     ui->setupUi(this);
-    using std::placeholders::_1;
-    _io->set_socket_open_listener(std::bind(&MainWindow::OnConnected,this,std::placeholders::_1));
-    _io->connect(MAIN_URL);
     setView(ROOMS_VIEW);
+    connect(this, SIGNAL(roomJoin(QString, QString)),
+            socket, SLOT(roomJoin(QString,QString)));
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
@@ -24,18 +25,16 @@ void MainWindow::setView(WINDOW_VIEW view) {
         case ROOMS_VIEW: {
             curView = new QWidget(ui->centralWidget);
             curView->setGeometry(ui->centralWidget->geometry());
-            QLabel *roomsLabel = new QLabel(curView);
-            roomsLabel->setText("Rooms list");
-
         }break;
     }
-}
-
-void MainWindow::OnConnected(const string &nsp) {
-
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text());
 }
