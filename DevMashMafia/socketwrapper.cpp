@@ -33,13 +33,13 @@ void SocketWrapper::OnConnected(const string &nsp)
 #ifdef WIN32
 #define BIND_EVENT(IO,EV,FN) \
     do{ \
-        socket::event_listener_aux l = FN;\
+        socket::event_listener_aux l = std::bind(&FN,this,_1,_2,_3,_4);\
         IO->on(EV,l);\
     } while(0)
 
 #else
 #define BIND_EVENT(IO,EV,FN) \
-    IO->on(EV,FN)
+    IO->on(EV,std::bind(&FN,this,_1,_2,_3,_4))
 #endif
 void SocketWrapper::httpReplyFinished(QNetworkReply *reply)
 {
@@ -55,35 +55,57 @@ void SocketWrapper::httpReplyFinished(QNetworkReply *reply)
     using std::placeholders::_2;
     using std::placeholders::_3;
     using std::placeholders::_4;
-    BIND_EVENT(sock,getSocketEvent(JOINED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
-    BIND_EVENT(sock,getSocketEvent(CREATED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
-    BIND_EVENT(sock,getSocketEvent(PLAYERS_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
-    BIND_EVENT(sock,getSocketEvent(ERR_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
+    BIND_EVENT(sock,getSocketEvent(JOINED_ROOM_EVENT),SocketWrapper::OnJoinedRoom);
+    BIND_EVENT(sock,getSocketEvent(CREATED_ROOM_EVENT),SocketWrapper::OnCreatedRoom);
+    BIND_EVENT(sock,getSocketEvent(PLAYERS_EVENT),SocketWrapper::OnPlayers);
+    BIND_EVENT(sock,getSocketEvent(PLAYER_JOINED_EVENT),SocketWrapper::OnPlayerJoined);
+    BIND_EVENT(sock,getSocketEvent(PLAYER_LEFT_EVENT),SocketWrapper::OnPlayerLeft);
+    BIND_EVENT(sock,getSocketEvent(ERR_EVENT),SocketWrapper::OnErr);
 }
 
-void SocketWrapper::OnNewMessage(const string &name, const message::ptr &data, bool hasAck,
-                                 message::list &ack_resp)
+void SocketWrapper::printEvent(const string &name)
 {
     QString eventName = socketEventNames[name.c_str()].toString();
     qDebug() << "\nNew socket message:";
     qDebug() << eventName;
+}
 
-    if (eventName == CREATED_ROOM_EVENT) {
-    qDebug() << "created room handler";
-        int room_id = data->get_int();
-        curRoomId = room_id;
-        Q_EMIT roomJoin(curNickname, room_id);
-    } else if (eventName == JOINED_ROOM_EVENT) {
-        qDebug() << "room joined handler";
-        Q_EMIT roomJoined(curRoomId);
-    } else if (eventName == PLAYERS_EVENT) {
-        Q_EMIT players(QJsonDocument::fromJson(data->get_string().c_str()).array());
-    } else if (eventName == ERR_EVENT) {
-        qDebug() << "error handler";
-        qDebug() << data->get_string().c_str();
-    } else {
-        qDebug() << "Other event";
-    }
+void SocketWrapper::OnJoinedRoom(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    Q_EMIT roomJoined(curRoomId);
+}
+
+void SocketWrapper::OnCreatedRoom(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    int room_id = data->get_int();
+    curRoomId = room_id;
+    Q_EMIT roomJoin(curNickname, room_id);
+}
+
+void SocketWrapper::OnPlayers(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    Q_EMIT players(QJsonDocument::fromJson(data->get_string().c_str()).array());
+}
+
+void SocketWrapper::OnPlayerJoined(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    getWaitingPlayers();
+}
+
+void SocketWrapper::OnPlayerLeft(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    getWaitingPlayers();
+}
+
+void SocketWrapper::OnErr(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    printEvent(name);
+    qDebug() << data->get_string().c_str();
 }
 
 void SocketWrapper::roomJoin(QString nickname, int room_id)

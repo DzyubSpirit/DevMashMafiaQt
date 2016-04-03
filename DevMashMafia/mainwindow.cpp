@@ -39,7 +39,6 @@ void MainWindow::setView(WINDOW_VIEW view) {
 
 void MainWindow::roomJoined(int room_id)
 {
-    qDebug() << "MainWindow::roomJoined: room_id=" << room_id;
     curRoomId = room_id;
     setView(ROOM_VIEW);
 }
