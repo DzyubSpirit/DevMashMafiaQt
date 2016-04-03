@@ -37,7 +37,7 @@ private:
     void OnNewMessage(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
 
 Q_SIGNALS:
-    void roomJoined();
+    void roomJoined(int room_id);
     void players(QJsonArray players);
 
 private Q_SLOTS:

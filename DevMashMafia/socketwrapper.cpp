@@ -71,10 +71,11 @@ void SocketWrapper::OnNewMessage(const string &name, const message::ptr &data, b
     if (eventName == CREATED_ROOM_EVENT) {
     qDebug() << "created room handler";
         int room_id = data->get_int();
+        curRoomId = room_id;
         Q_EMIT roomJoin(curNickname, room_id);
     } else if (eventName == JOINED_ROOM_EVENT) {
         qDebug() << "room joined handler";
-        Q_EMIT roomJoined();
+        Q_EMIT roomJoined(curRoomId);
     } else if (eventName == PLAYERS_EVENT) {
         Q_EMIT players(QJsonDocument::fromJson(data->get_string().c_str()).array());
     } else if (eventName == ERR_EVENT) {
@@ -91,6 +92,7 @@ void SocketWrapper::roomJoin(QString nickname, int room_id)
         {"nickname", nickname},
         {"room_id", room_id}
     };
+    curRoomId = room_id;
     sendEvent(QString(JOIN_ROOM_EVENT), params);
 }
 

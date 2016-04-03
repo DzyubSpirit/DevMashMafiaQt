@@ -1,12 +1,16 @@
 #include "roomview.h"
 #include "ui_roomview.h"
 
-RoomView::RoomView(QWidget *parent, SocketWrapper *socket) :
+RoomView::RoomView(QWidget *parent,
+                   SocketWrapper *socket,
+                   int roomId) :
     QWidget(parent),
     ui(new Ui::RoomView),
-    socket(socket)
+    socket(socket),
+    roomId(roomId)
 {
     ui->setupUi(this);
+    ui->roomId->setText(QString::number(roomId));
     connect(this, SIGNAL(getWaitingPlayers()),
             socket, SLOT(getWaitingPlayers()));
     connect(socket, SIGNAL(players(QJsonArray)),
@@ -18,7 +22,7 @@ void RoomView::players(QJsonArray players)
 {
     ui->listWidget->clear();
     for (int i = 0; i < players.size(); i++) {
-        ui->listWidget->addItem(players[i].toString());
+        ui->listWidget->addItem(players[i].toObject()["nickname"].toString());
     }
 }
 

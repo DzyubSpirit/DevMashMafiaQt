@@ -24,12 +24,13 @@ public:
     ~MainWindow();
 
 public Q_SLOTS:
-    void roomJoined();
+    void roomJoined(int room_id);
 
 private:
     Ui::MainWindow *ui;
     QWidget *curView;
     SocketWrapper *socket;
+    int curRoomId;
     void setView(WINDOW_VIEW view);
 };
 

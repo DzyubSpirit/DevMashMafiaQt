@@ -15,12 +15,15 @@ class RoomView : public QWidget
     Q_OBJECT
 
 public:
-    explicit RoomView(QWidget *parent = 0, SocketWrapper *socket = 0);
+    explicit RoomView(QWidget *parent = 0,
+                      SocketWrapper *socket = 0,
+                      int roomId = 0);
     ~RoomView();
 
 private:
     Ui::RoomView *ui;
     SocketWrapper *socket;
+    int roomId;
 
 Q_SIGNALS:
     void getWaitingPlayers();

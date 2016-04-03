@@ -18,10 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setView(ROOM_JOIN_VIEW);
-    connect(socket, SIGNAL(roomJoined()),
-            this, SLOT(roomJoined()));
-//    connect(socket, SIGNAL(players(QJsonArray)),
-//            this, SLOT(players(QJsonArray)));
+    connect(socket, SIGNAL(roomJoined(int)),
+            this, SLOT(roomJoined(int)));
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
@@ -30,7 +28,7 @@ void MainWindow::setView(WINDOW_VIEW view) {
         curView = new RoomJoinView(this, socket);
     } break;
     case ROOM_VIEW: {
-        curView = new RoomView(this, socket);
+        curView = new RoomView(this, socket, curRoomId);
     } break;
     default: {
         return;
@@ -39,8 +37,10 @@ void MainWindow::setView(WINDOW_VIEW view) {
     this->setCentralWidget(curView);
 }
 
-void MainWindow::roomJoined()
+void MainWindow::roomJoined(int room_id)
 {
+    qDebug() << "MainWindow::roomJoined: room_id=" << room_id;
+    curRoomId = room_id;
     setView(ROOM_VIEW);
 }
 
