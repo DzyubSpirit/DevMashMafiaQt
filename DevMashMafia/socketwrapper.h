@@ -6,6 +6,8 @@
 #define JOIN_ROOM_EVENT "join room"
 #define CREATE_ROOM_EVENT "create room"
 #define CREATED_ROOM_EVENT "room created"
+#define GET_WAITING_PLAYERS_EVENT "get waiting players"
+#define PLAYERS_EVENT "players"
 #define ERR_EVENT "err"
 
 #include <QObject>
@@ -43,6 +45,7 @@ private Q_SLOTS:
 public Q_SLOTS:
     void roomJoin(QString nickname, int room_id);
     void createRoom(QString nickname, int players_count);
+    void getWaitingPlayers();
 };
 
 #endif // SOCKETWRAPPER_H

@@ -57,6 +57,7 @@ void SocketWrapper::httpReplyFinished(QNetworkReply *reply)
     using std::placeholders::_4;
     BIND_EVENT(sock,getSocketEvent(JOINED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
     BIND_EVENT(sock,getSocketEvent(CREATED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
+    BIND_EVENT(sock,getSocketEvent(PLAYERS_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
     BIND_EVENT(sock,getSocketEvent(ERR_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
 }
 
@@ -73,12 +74,14 @@ void SocketWrapper::OnNewMessage(const string &name, const message::ptr &data, b
         Q_EMIT roomJoin(curNickname, room_id);
     } else if (eventName == JOINED_ROOM_EVENT) {
         qDebug() << "room joined handler";
+        Q_EMIT roomJoined();
+    } else if (eventName == PLAYERS_EVENT) {
+        Q_EMIT players(QJsonDocument::fromJson(data->get_string().c_str()).array());
     } else if (eventName == ERR_EVENT) {
         qDebug() << "error handler";
         qDebug() << data->get_string().c_str();
     } else {
         qDebug() << "Other event";
-        qDebug() << eventName;
     }
 }
 
@@ -98,6 +101,12 @@ void SocketWrapper::createRoom(QString nickname, int players_count)
     };
     sendEvent(QString(CREATE_ROOM_EVENT), params);
     curNickname = nickname;
+}
+
+void SocketWrapper::getWaitingPlayers()
+{
+    QJsonObject params;
+    sendEvent(QString(GET_WAITING_PLAYERS_EVENT), params);
 }
 
 void SocketWrapper::sendEvent(QString event, QJsonObject &params)

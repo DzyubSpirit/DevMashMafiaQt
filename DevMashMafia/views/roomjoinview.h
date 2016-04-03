@@ -25,10 +25,6 @@ Q_SIGNALS:
     void roomJoin(QString, int);
     void createRoom(QString, int);
 
-public Q_SLOTS:
-    void roomJoined();
-    void players(QJsonArray players);
-
 private Q_SLOTS:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();

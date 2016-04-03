@@ -11,10 +11,6 @@ RoomJoinView::RoomJoinView(QWidget *parent, SocketWrapper *socket) :
             socket, SLOT(roomJoin(QString,int)));
     connect(this, SIGNAL(createRoom(QString,int)),
             socket, SLOT(createRoom(QString,int)));
-    connect(socket, SIGNAL(roomJoined()),
-            this, SLOT(roomJoined()));
-    connect(socket, SIGNAL(players(QJsonArray)),
-            this, SLOT(players(QJsonArray)));
 }
 
 void RoomJoinView::on_pushButton_2_clicked()
@@ -25,14 +21,4 @@ void RoomJoinView::on_pushButton_2_clicked()
 void RoomJoinView::on_pushButton_clicked()
 {
     Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text().toInt());
-}
-
-void RoomJoinView::roomJoined()
-{
-
-}
-
-void RoomJoinView::players(QJsonArray players)
-{
-
 }

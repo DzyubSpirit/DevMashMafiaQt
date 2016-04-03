@@ -23,9 +23,8 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private Q_SLOTS:
-
 public Q_SLOTS:
+    void roomJoined();
 
 private:
     Ui::MainWindow *ui;

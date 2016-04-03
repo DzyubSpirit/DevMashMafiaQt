@@ -9,7 +9,7 @@
 #include <QJsonDocument>
 
 #include "views/roomjoinview.h"
-
+#include "views/roomview.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -18,6 +18,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setView(ROOM_JOIN_VIEW);
+    connect(socket, SIGNAL(roomJoined()),
+            this, SLOT(roomJoined()));
+//    connect(socket, SIGNAL(players(QJsonArray)),
+//            this, SLOT(players(QJsonArray)));
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
@@ -26,13 +30,18 @@ void MainWindow::setView(WINDOW_VIEW view) {
         curView = new RoomJoinView(this, socket);
     } break;
     case ROOM_VIEW: {
-
+        curView = new RoomView(this, socket);
     } break;
     default: {
         return;
     }
     }
     this->setCentralWidget(curView);
+}
+
+void MainWindow::roomJoined()
+{
+    setView(ROOM_VIEW);
 }
 
 MainWindow::~MainWindow()
