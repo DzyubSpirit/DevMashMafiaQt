@@ -16,8 +16,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setView(ROOMS_VIEW);
-    connect(this, SIGNAL(roomJoin(QString, QString)),
-            socket, SLOT(roomJoin(QString,QString)));
+    connect(this, SIGNAL(roomJoin(QString,int)),
+            socket, SLOT(roomJoin(QString,int)));
+    connect(this, SIGNAL(createRoom(QString,int)),
+            socket, SLOT(createRoom(QString,int)));
+
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
@@ -36,5 +39,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_pushButton_clicked()
 {
-    Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text());
+    Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text().toInt());
+}
+
+void MainWindow::on_pushButton_2_clicked()
+{
+    Q_EMIT createRoom(ui->lineEdit->text(), ui->lineEdit_3->text().toInt());
 }

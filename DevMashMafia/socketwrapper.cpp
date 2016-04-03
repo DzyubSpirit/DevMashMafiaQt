@@ -30,39 +30,85 @@ void SocketWrapper::OnConnected(const string &nsp)
     qDebug() << "Socket has been connected";
 }
 
+#ifdef WIN32
+#define BIND_EVENT(IO,EV,FN) \
+    do{ \
+        socket::event_listener_aux l = FN;\
+        IO->on(EV,l);\
+    } while(0)
+
+#else
+#define BIND_EVENT(IO,EV,FN) \
+    IO->on(EV,FN)
+#endif
 void SocketWrapper::httpReplyFinished(QNetworkReply *reply)
 {
 //    qDebug() << reply->readLine().toStdString().c_str();
     socketEvents = QJsonDocument::fromJson(reply->readLine()).object();
+    socketEventNames = QJsonObject();
+    for (auto it = socketEvents.begin(); it != socketEvents.end(); it++) {
+        socketEventNames[it.value().toString()] = it.key();
+    }
+
     socket::ptr sock =_io->socket();
     using std::placeholders::_1;
     using std::placeholders::_2;
     using std::placeholders::_3;
     using std::placeholders::_4;
-    sock->on(socketEvents[JOINED_ROOM_EVENT].toString().toStdString()
-            ,std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
+    BIND_EVENT(sock,getSocketEvent(JOINED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
+    BIND_EVENT(sock,getSocketEvent(CREATED_ROOM_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
+    BIND_EVENT(sock,getSocketEvent(ERR_EVENT),std::bind(&SocketWrapper::OnNewMessage,this,_1,_2,_3,_4));
 }
 
 void SocketWrapper::OnNewMessage(const string &name, const message::ptr &data, bool hasAck,
                                  message::list &ack_resp)
 {
-    qDebug() << "New socket message:";
-    qDebug() << name.c_str();
-    qDebug() << data->get_string().c_str();
-    qDebug() << hasAck;
-    qDebug() << ack_resp.to_array_message()->get_string().c_str();
+    QString eventName = socketEventNames[name.c_str()].toString();
+    qDebug() << "\nNew socket message:";
+    qDebug() << eventName;
+
+    if (eventName == CREATED_ROOM_EVENT) {
+    qDebug() << "created room handler";
+        int room_id = data->get_int();
+        Q_EMIT roomJoin(curNickname, room_id);
+    } else if (eventName == JOINED_ROOM_EVENT) {
+        qDebug() << "room joined handler";
+    } else if (eventName == ERR_EVENT) {
+        qDebug() << "error handler";
+    } else {
+        qDebug() << "Other event";
+        qDebug() << eventName;
+    }
 }
 
-void SocketWrapper::roomJoin(QString nickname, QString room_id)
+void SocketWrapper::roomJoin(QString nickname, int room_id)
 {
-    socket::ptr sock =_io->socket();
     QJsonObject params {
         {"nickname", nickname},
         {"room_id", room_id}
     };
+    sendEvent(QString(JOIN_ROOM_EVENT), params);
+}
+
+void SocketWrapper::createRoom(QString nickname, int players_count)
+{
+    QJsonObject params {
+        {"players", players_count}
+    };
+    sendEvent(QString(CREATE_ROOM_EVENT), params);
+    curNickname = nickname;
+}
+
+void SocketWrapper::sendEvent(QString event, QJsonObject &params)
+{
+    socket::ptr sock =_io->socket();
     QByteArray bytes = QJsonDocument(params).toJson(QJsonDocument::Compact);
     std::string message(bytes.data(), bytes.length());
-    sock->emit(socketEvents[JOIN_ROOM_EVENT].toString().toStdString(),
-               message);
-    qDebug() << message.c_str();
+    sock->emit(getSocketEvent(event), message);
+    qDebug() << "\nSend socket" << event << message.c_str();
+}
+
+std::string SocketWrapper::getSocketEvent(QString const& event)
+{
+    return socketEvents[event].toString().toStdString();
 }

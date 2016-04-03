@@ -22,10 +22,12 @@ public:
     ~MainWindow();
 
 Q_SIGNALS:
-    void roomJoin(QString, QString);
+    void roomJoin(QString, int);
+    void createRoom(QString, int);
 
 private Q_SLOTS:
     void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
 
 private:
     Ui::MainWindow *ui;
