@@ -2,11 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QJsonArray>
 
 #include "socketwrapper.h"
 
 enum WINDOW_VIEW{
-    ROOMS_VIEW
+    ROOM_JOIN_VIEW,
+    ROOM_VIEW
 };
 
 namespace Ui {
@@ -21,13 +23,9 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-Q_SIGNALS:
-    void roomJoin(QString, int);
-    void createRoom(QString, int);
-
 private Q_SLOTS:
-    void on_pushButton_clicked();
-    void on_pushButton_2_clicked();
+
+public Q_SLOTS:
 
 private:
     Ui::MainWindow *ui;

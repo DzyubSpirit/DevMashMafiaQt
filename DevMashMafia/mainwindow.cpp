@@ -8,6 +8,8 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+#include "views/roomjoinview.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,21 +17,22 @@ MainWindow::MainWindow(QWidget *parent) :
     socket(new SocketWrapper(this))
 {
     ui->setupUi(this);
-    setView(ROOMS_VIEW);
-    connect(this, SIGNAL(roomJoin(QString,int)),
-            socket, SLOT(roomJoin(QString,int)));
-    connect(this, SIGNAL(createRoom(QString,int)),
-            socket, SLOT(createRoom(QString,int)));
-
+    setView(ROOM_JOIN_VIEW);
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
     switch (view) {
-        case ROOMS_VIEW: {
-            curView = new QWidget(ui->centralWidget);
-            curView->setGeometry(ui->centralWidget->geometry());
-        }break;
+    case ROOM_JOIN_VIEW: {
+        curView = new RoomJoinView(this, socket);
+    } break;
+    case ROOM_VIEW: {
+
+    } break;
+    default: {
+        return;
     }
+    }
+    this->setCentralWidget(curView);
 }
 
 MainWindow::~MainWindow()
@@ -37,12 +40,3 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_pushButton_clicked()
-{
-    Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text().toInt());
-}
-
-void MainWindow::on_pushButton_2_clicked()
-{
-    Q_EMIT createRoom(ui->lineEdit->text(), ui->lineEdit_3->text().toInt());
-}

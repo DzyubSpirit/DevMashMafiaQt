@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QNetworkReply>
 #include <QJsonObject>
+#include <QJsonArray>
 
 #include <sio_client.h>
 
@@ -35,6 +36,7 @@ private:
 
 Q_SIGNALS:
     void roomJoined();
+    void players(QJsonArray players);
 
 private Q_SLOTS:
     void httpReplyFinished(QNetworkReply*);

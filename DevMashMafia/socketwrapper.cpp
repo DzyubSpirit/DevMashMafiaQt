@@ -75,6 +75,7 @@ void SocketWrapper::OnNewMessage(const string &name, const message::ptr &data, b
         qDebug() << "room joined handler";
     } else if (eventName == ERR_EVENT) {
         qDebug() << "error handler";
+        qDebug() << data->get_string().c_str();
     } else {
         qDebug() << "Other event";
         qDebug() << eventName;
