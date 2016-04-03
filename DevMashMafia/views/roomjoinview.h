@@ -28,6 +28,9 @@ Q_SIGNALS:
 private Q_SLOTS:
     void on_pushButton_clicked();
     void on_pushButton_2_clicked();
+
+public Q_SLOTS:
+    void socketError(QString mess);
 };
 
 #endif // ROOMJOINVIEW_H

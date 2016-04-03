@@ -24,7 +24,10 @@ public:
     ~MainWindow();
 
 public Q_SLOTS:
+    void socketClosed(client::close_reason const& reason);
+    void socketFailed();
     void roomJoined(int room_id);
+    void roomLeft();
 
 private:
     Ui::MainWindow *ui;

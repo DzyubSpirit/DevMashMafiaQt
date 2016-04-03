@@ -11,7 +11,10 @@ RoomJoinView::RoomJoinView(QWidget *parent, SocketWrapper *socket) :
             socket, SLOT(roomJoin(QString,int)));
     connect(this, SIGNAL(createRoom(QString,int)),
             socket, SLOT(createRoom(QString,int)));
+    connect(socket, SIGNAL(error(QString)),
+             this, SLOT(socketError(QString)));
 }
+
 
 void RoomJoinView::on_pushButton_2_clicked()
 {
@@ -21,4 +24,9 @@ void RoomJoinView::on_pushButton_2_clicked()
 void RoomJoinView::on_pushButton_clicked()
 {
     Q_EMIT roomJoin(ui->lineEdit->text(), ui->lineEdit_2->text().toInt());
+}
+
+void RoomJoinView::socketError(QString mess)
+{
+    ui->errorLabel->setText(mess);
 }

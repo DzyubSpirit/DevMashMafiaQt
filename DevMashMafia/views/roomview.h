@@ -27,9 +27,12 @@ private:
 
 Q_SIGNALS:
     void getWaitingPlayers();
+    void leaveRoom();
 
 public Q_SLOTS:
     void players(QJsonArray players);
+private Q_SLOTS:
+    void on_pushButton_clicked();
 };
 
 #endif // ROOMVIEW_H

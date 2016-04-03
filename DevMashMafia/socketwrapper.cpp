@@ -3,7 +3,6 @@
 #include <QNetworkRequest>
 #include <QJsonDocument>
 #include <QDebug>
-#include <sio_socket.h>
 
 SocketWrapper::SocketWrapper(QObject *parent) :
     QObject(parent),
@@ -22,12 +21,24 @@ SocketWrapper::SocketWrapper(QObject *parent) :
     using std::placeholders::_3;
     using std::placeholders::_4;
     _io->set_socket_open_listener(std::bind(&SocketWrapper::OnConnected,this,std::placeholders::_1));
+    _io->set_close_listener(std::bind(&SocketWrapper::OnClosed,this,_1));
+    _io->set_fail_listener(std::bind(&SocketWrapper::OnFailed,this));
     _io->connect(MAIN_URL);
 }
 
 void SocketWrapper::OnConnected(const string &nsp)
 {
     qDebug() << "Socket has been connected";
+}
+
+void SocketWrapper::OnClosed(client::close_reason const& reason)
+{
+
+}
+
+void SocketWrapper::OnFailed()
+{
+
 }
 
 #ifdef WIN32
@@ -60,6 +71,7 @@ void SocketWrapper::httpReplyFinished(QNetworkReply *reply)
     BIND_EVENT(sock,getSocketEvent(PLAYERS_EVENT),SocketWrapper::OnPlayers);
     BIND_EVENT(sock,getSocketEvent(PLAYER_JOINED_EVENT),SocketWrapper::OnPlayerJoined);
     BIND_EVENT(sock,getSocketEvent(PLAYER_LEFT_EVENT),SocketWrapper::OnPlayerLeft);
+    BIND_EVENT(sock,getSocketEvent(ROOM_LEFT_EVENT),SocketWrapper::OnRoomLeft);
     BIND_EVENT(sock,getSocketEvent(ERR_EVENT),SocketWrapper::OnErr);
 }
 
@@ -102,10 +114,17 @@ void SocketWrapper::OnPlayerLeft(const string &name, const message::ptr &data, b
     getWaitingPlayers();
 }
 
+void SocketWrapper::OnRoomLeft(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
+{
+    Q_EMIT roomLeft();
+}
+
 void SocketWrapper::OnErr(const string &name, const message::ptr &data, bool hasAck, message::list &ack_resp)
 {
     printEvent(name);
-    qDebug() << data->get_string().c_str();
+    const char *err_message = data->get_string().c_str();
+    qDebug() << err_message;
+    Q_EMIT error(QString(err_message));
 }
 
 void SocketWrapper::roomJoin(QString nickname, int room_id)
@@ -131,6 +150,12 @@ void SocketWrapper::getWaitingPlayers()
 {
     QJsonObject params;
     sendEvent(QString(GET_WAITING_PLAYERS_EVENT), params);
+}
+
+void SocketWrapper::leaveRoom()
+{
+    QJsonObject params;
+    sendEvent(QString(LEAVE_ROOM_EVENT), params);
 }
 
 void SocketWrapper::sendEvent(QString event, QJsonObject &params)

@@ -10,6 +10,8 @@
 #define PLAYERS_EVENT "players"
 #define PLAYER_JOINED_EVENT "player joined"
 #define PLAYER_LEFT_EVENT "player left"
+#define LEAVE_ROOM_EVENT "leave room"
+#define ROOM_LEFT_EVENT "room left"
 #define ERR_EVENT "err"
 
 #include <QObject>
@@ -42,11 +44,18 @@ private:
     void OnPlayers(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
     void OnPlayerJoined(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
     void OnPlayerLeft(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
+    void OnRoomLeft(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
     void OnErr(std::string const& name,message::ptr const& data,bool hasAck,message::list &ack_resp);
+    void OnClosed(client::close_reason const& reason);
+    void OnFailed();
 
 Q_SIGNALS:
+    void socketClose(client::close_reason const& reason);
+    void socketFailed();
     void roomJoined(int room_id);
     void players(QJsonArray players);
+    void roomLeft();
+    void error(QString mess);
 
 private Q_SLOTS:
     void httpReplyFinished(QNetworkReply*);
@@ -54,6 +63,7 @@ public Q_SLOTS:
     void roomJoin(QString nickname, int room_id);
     void createRoom(QString nickname, int players_count);
     void getWaitingPlayers();
+    void leaveRoom();
 };
 
 #endif // SOCKETWRAPPER_H

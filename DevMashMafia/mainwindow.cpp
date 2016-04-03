@@ -17,9 +17,12 @@ MainWindow::MainWindow(QWidget *parent) :
     socket(new SocketWrapper(this))
 {
     ui->setupUi(this);
+
     setView(ROOM_JOIN_VIEW);
     connect(socket, SIGNAL(roomJoined(int)),
             this, SLOT(roomJoined(int)));
+    connect(socket, SIGNAL(roomLeft()),
+            this, SLOT(roomLeft()));
 }
 
 void MainWindow::setView(WINDOW_VIEW view) {
@@ -34,6 +37,9 @@ void MainWindow::setView(WINDOW_VIEW view) {
         return;
     }
     }
+    const QRect &viewRect = curView->geometry();
+    const QRect &thisRect = this->geometry();
+    this->setGeometry(thisRect.x(), thisRect.y(), viewRect.width(), viewRect.height());
     this->setCentralWidget(curView);
 }
 
@@ -41,6 +47,21 @@ void MainWindow::roomJoined(int room_id)
 {
     curRoomId = room_id;
     setView(ROOM_VIEW);
+}
+
+void MainWindow::roomLeft()
+{
+    setView(ROOM_JOIN_VIEW);
+}
+
+void MainWindow::socketFailed()
+{
+    ui->statusBar->setWindowTitle("Socket has been failed");
+}
+
+void MainWindow::socketClosed(const client::close_reason &reason)
+{
+    ui->statusBar->setWindowTitle("Socket has been closed for reason: ");
 }
 
 MainWindow::~MainWindow()

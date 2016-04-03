@@ -15,6 +15,8 @@ RoomView::RoomView(QWidget *parent,
             socket, SLOT(getWaitingPlayers()));
     connect(socket, SIGNAL(players(QJsonArray)),
             this, SLOT(players(QJsonArray)));
+    connect(this, SIGNAL(leaveRoom()),
+            socket, SLOT(leaveRoom()));
     Q_EMIT getWaitingPlayers();
 }
 
@@ -29,4 +31,9 @@ void RoomView::players(QJsonArray players)
 RoomView::~RoomView()
 {
     delete ui;
+}
+
+void RoomView::on_pushButton_clicked()
+{
+    Q_EMIT leaveRoom();
 }
